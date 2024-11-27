@@ -1,5 +1,7 @@
 import os
+
 from helpers.preprocessing import Preprocessing
+from helpers.report import Report
 
 if __name__ == '__main__':
 
@@ -46,4 +48,9 @@ if __name__ == '__main__':
     preprocessing = Preprocessing(**params)
     preprocessing.process()
     preprocessing.plot_erp(electrode_index=2, save_plot=True)
+
+    #Build the report
+    report = Report(preprocessing)
+    report.build_report()
+
     print('Debug stop')

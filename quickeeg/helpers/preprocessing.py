@@ -303,10 +303,10 @@ class Preprocessing:
 
         #Save the plot
         if save_plot:
-            self.plot_filename = os.path.join('quickeeg','plots',f'{self.id}_erp.png')
-            plt.savefig(self.plot_filename)
-
-        plt.show()
+            self.erp_plot_filename = os.path.join('quickeeg','plots',f'{self.id}_e{self.raw.ch_names[electrode_index]}_erp.png')
+            plt.savefig(self.erp_plot_filename)
+        else:
+            plt.show()
     
     def plot_eeg(self):
 
