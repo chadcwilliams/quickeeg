@@ -61,6 +61,7 @@ class Preprocessing:
         #Parameters
         self.pipeline = pipeline
         self.file_path = file_path
+        self.id = os.path.split(file_path)[-1]
         self.find_files_by_marker = find_files_by_marker
         self.reference_channels = reference_channels
         self.bp_filter_cutoffs = bp_filter_cutoffs
@@ -281,7 +282,7 @@ class Preprocessing:
             print(f'Loading condition {key} data for averaging...')
             self.erp[key] = np.mean(self.epochs[key].get_data(), axis=0)
 
-    def plot_erp(self, electrode_index: int):
+    def plot_erp(self, electrode_index: int, save_plot: bool = False):
             
         """
         Plot the ERP data
@@ -299,6 +300,11 @@ class Preprocessing:
         plt.ylabel('Voltage')
         plt.title('ERP Data')
         plt.legend()
+
+        #Save the plot
+        if save_plot:
+            plt.savefig(os.path.join('quickeeg','reports',f'{self.id}_erp.png'))
+
         plt.show()
     
     def plot_eeg(self):
