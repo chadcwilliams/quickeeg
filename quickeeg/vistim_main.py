@@ -54,14 +54,14 @@ if __name__ == '__main__':
         preprocessing.plot_erp(electrode_index=electrodes, save_plot=True)
 
         #Build the report
-        reader_note = ' '.join(['This report was produced by the Quickeeg package for Vistim Labs.',
+        reader_note = ' '.join(['This report was produced by the QuickEEG package for Vistim Labs.',
                        'This processing pipeline is an automated pipeline for EEG data processing.',
                        'Note that I would generally take a lot more care to look at the data before accepting these processing steps.',
                        'For example, this does not include the identification and interpolation of bad channels, nor the artifact rejection of bad epochs.',
                        'Both topographic interpolation and artifact rejection methods will need to be added to QuickEEG in the future.',
                        'However, this is a proof of concept rather than a true data analysis.'])
         conclusion_note = ' '.join(['Part of the task was to observe patterns in the data and identify clinical conditions of patients based on the EEG data.',
-                       'It is in my professional, however, that there is not enough information provided to make any conclusions.',
+                       'It is in my professional opinion, however, that there is not enough information provided to make any conclusions.',
                        'For example, the task paradigm is hidden, thus it is impossible to know what neural events are being elicited.',
                        'Thus, I will not be making any observations here, nor concluding anything about patient conditions.'])
         
