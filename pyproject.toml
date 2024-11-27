@@ -1,0 +1,20 @@
+[project]
+name = "quickeeg"
+version = "0.1.0"
+authors = [
+  { name="Chad Williams", email="chad_williams@brown.edu" },
+]
+description = "This package provides a quick and easy pipeline to process EEG files and generate a report. It is a wrapper for mne."
+readme = "README.md"
+requires-python = ">=3.7"
+
+dependencies = [
+    
+]
+
+[project.urls]
+"Repository" = ""
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
