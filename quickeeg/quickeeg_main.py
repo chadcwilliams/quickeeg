@@ -1,4 +1,7 @@
 import os
+import sys
+sys.dont_write_bytecode = True
+import numpy as np
 
 from helpers.preprocessing import Preprocessing
 from helpers.report import Report
@@ -18,7 +21,7 @@ if __name__ == '__main__':
                 'rereference',
                 'filter',
                 'notch_filter',
-                #'ica',
+                'ica',
                 'marker_cleaning',
                 'epoching',
                 'baseline_correction',
@@ -28,10 +31,7 @@ if __name__ == '__main__':
     target_markers = {'11': [f'{i}' for i in range(11, 20)],
                       '21': [f'{i}' for i in range(21, 30)],
                       '31': [f'{i}' for i in range(31, 40)]}
-    
-    #temp:
-    target_markers = {'11': '11', '21': '21', '31': '31'}
-    
+        
     params = {'pipeline':               pipeline,
               'file_path':              os.path.join(path, id),
               'find_files_by_marker':   's11',
@@ -47,10 +47,18 @@ if __name__ == '__main__':
     #Run the pipeline
     preprocessing = Preprocessing(**params)
     preprocessing.process()
-    preprocessing.plot_erp(electrode_index=2, save_plot=True)
+
+    electrodes=list(np.arange(0,len(preprocessing.raw.ch_names)))
+    preprocessing.plot_erp(electrode_index=electrodes, save_plot=True)
 
     #Build the report
     report = Report(preprocessing)
-    report.build_report()
-
-    print('Debug stop')
+    custom_text = ['## Note for the reader',
+                    'This report was produced by the Quickeeg package for Vistim Labs.',
+                    'This processing pipeline is an automated pipeline for EEG data processing.',
+                    'Note that I would generally take a lot more care to look at the data before accepting these processing steps.',
+                    'For example, this does not include the identification and interpolation of bad channels, nor the artifact rejection of bad epochs.',
+                    'Both topographic interpolation and artifact rejection methods will need to be added to QuickEEG in the future.',
+                    'However, this is a proof of concept rather than a true data analysis.']
+    custom_text = [' '.join(custom_text)]
+    report.build_report(custom_text)

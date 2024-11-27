@@ -113,7 +113,7 @@ class Preprocessing:
         files = os.listdir(file_path)
         self.determine_data(files, find_files_by_marker)
         self.raw = mne.io.read_raw_brainvision(os.path.join(file_path, self.vhdr_file), preload=True)
-        self.events, self.event_id= mne.events_from_annotations(self.raw)
+        self.events, self.event_id = mne.events_from_annotations(self.raw)
         self.sfreq = self.raw.info['sfreq']
 
     def determine_data(self, files: list, find_files_by_marker: str = None):
@@ -282,7 +282,7 @@ class Preprocessing:
             print(f'Loading condition {key} data for averaging...')
             self.erp[key] = np.mean(self.epochs[key].get_data(), axis=0)
 
-    def plot_erp(self, electrode_index: int, save_plot: bool = False):
+    def plot_erp(self, electrode_index: list[int], save_plot: bool = False):
             
         """
         Plot the ERP data
@@ -293,20 +293,22 @@ class Preprocessing:
             The index of the electrode to plot
         """
 
-        electrode_index = 2
-        for key in ['11', '21', '31']:
-            plt.plot(self.erp[key][electrode_index], alpha=0.5, label=key)
-        plt.xlabel('Time')
-        plt.ylabel('Voltage')
-        plt.title('ERP Data')
-        plt.legend()
+        self.erp_plot_filenames = []
+        for e in electrode_index:
+            for key in self.target_markers:
+                plt.plot(self.erp[key][e], alpha=0.5, label=key)
+            plt.xlabel('Time')
+            plt.ylabel('Voltage')
+            plt.title(f'ERP Data, Electrode {self.raw.ch_names[e]}')
+            plt.legend()
 
-        #Save the plot
-        if save_plot:
-            self.erp_plot_filename = os.path.join('quickeeg','plots',f'{self.id}_e{self.raw.ch_names[electrode_index]}_erp.png')
-            plt.savefig(self.erp_plot_filename)
-        else:
-            plt.show()
+            #Save the plot
+            if save_plot:
+                self.erp_plot_filenames.append(os.path.join('quickeeg','plots',f'{self.id}_e{self.raw.ch_names[e]}_erp.png'))
+                plt.savefig(self.erp_plot_filenames[-1])
+            else:
+                plt.show()
+            plt.close()
     
     def plot_eeg(self):
 
