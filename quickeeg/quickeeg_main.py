@@ -52,13 +52,15 @@ if __name__ == '__main__':
     preprocessing.plot_erp(electrode_index=electrodes, save_plot=True)
 
     #Build the report
-    report = Report(preprocessing)
-    custom_text = ['## Note for the reader',
-                    'This report was produced by the Quickeeg package for Vistim Labs.',
+    reader_note = ' '.join(['This report was produced by the Quickeeg package for Vistim Labs.',
                     'This processing pipeline is an automated pipeline for EEG data processing.',
                     'Note that I would generally take a lot more care to look at the data before accepting these processing steps.',
                     'For example, this does not include the identification and interpolation of bad channels, nor the artifact rejection of bad epochs.',
                     'Both topographic interpolation and artifact rejection methods will need to be added to QuickEEG in the future.',
-                    'However, this is a proof of concept rather than a true data analysis.']
-    custom_text = [' '.join(custom_text)]
+                    'However, this is a proof of concept rather than a true data analysis.'])
+    
+    custom_text = ['## Note for the reader', 
+                    reader_note]
+    
+    report = Report(preprocessing)
     report.build_report(custom_text)
