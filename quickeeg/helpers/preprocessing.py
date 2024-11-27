@@ -297,7 +297,11 @@ class Preprocessing:
         for e in electrode_index:
             for key in self.target_markers:
                 plt.plot(self.erp[key][e], alpha=0.5, label=key)
-            plt.xlabel('Time')
+            plt.xlabel('Time (ms)')
+            start, end = [time*1000 for time in self.epoching_times]
+            xl = np.arange(start, end+1, 200)
+            xs = np.linspace(0, self.sfreq, len(xl))
+            plt.xticks(xs, xl)
             plt.ylabel('Voltage')
             plt.title(f'ERP Data, Electrode {self.raw.ch_names[e]}')
             plt.legend()
