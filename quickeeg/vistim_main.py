@@ -23,7 +23,7 @@ if __name__ == '__main__':
                     'rereference',
                     'filter',
                     'notch_filter',
-                    #'ica',
+                    'ica',
                     'marker_cleaning',
                     'epoching',
                     'baseline_correction',
@@ -33,9 +33,6 @@ if __name__ == '__main__':
         target_markers = {'11': [f'{i}' for i in range(11, 20)],
                         '21': [f'{i}' for i in range(21, 30)],
                         '31': [f'{i}' for i in range(31, 40)]}
-        
-        #temp
-        target_markers = {'11': '11', '21': '21', '31': '31'}
         
         params = {'pipeline':             pipeline,
                 'file_path':              os.path.join(path, id),
