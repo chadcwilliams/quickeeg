@@ -7,8 +7,23 @@ import matplotlib.pyplot as plt
 
 class Preprocessing:
 
-    def __init__(self, file_path: str):
+    def __init__(self, 
+                 file_path: str, 
+                 reference_channels: list = ['M1', 'M2'], 
+                 bp_filter_cutoffs: list = [0.1, 50], 
+                 notch_filter_freq: int = 60,
+                 ica_components: int = 20, 
+                 eog_channel: str = ['1L', '1R'],
+                 epoching_times: list = [-.2, .8]):
+        
+        #Parameters
         self.file_path = file_path
+        self.reference_channels = reference_channels
+        self.bp_filter_cutoffs = bp_filter_cutoffs
+        self.notch_filter_freq = notch_filter_freq
+        self.ica_components = ica_components
+        self.eog_channel = eog_channel
+        self.epoching_times = epoching_times
 
     def load_data(self):
         files = os.listdir(file_path)
@@ -18,7 +33,7 @@ class Preprocessing:
 
         self.sfreq = self.raw.info['sfreq']
 
-    def determine_data(self, files):
+    def determine_data(self, files: list):
         vmrk_files = [file for file in files if file.endswith('.vmrk')]
 
         correct_file = []
@@ -39,13 +54,6 @@ class Preprocessing:
         self.vmrk_file = vmrk_files[np.argmax(correct_file)]
         self.vhdr_file = vmrk_file.replace('.vmrk', '.vhdr')
         self.eeg_file = vmrk_file.replace('.vmrk', '.eeg')
-    
-    def report_data(self):
-        self.raw.info
-        
-    def create_mne_raw_object(self):
-        info = mne.create_info(self.raw.ch_names, self.raw.info['sfreq'], ch_types='eeg')
-        self.raw = mne.io.RawArray(self.raw, info=info)
 
     def apply_filter(self, lowcut: float, highcut: float):
         self.raw.filter(lowcut, highcut)
@@ -77,24 +85,35 @@ class Preprocessing:
         self.event_id = {key: self.event_id[key] for key in self.event_id if key in marker_range}
         self.events = np.array([event for event in self.events if event[2] not in marker_exclusions])
 
+        for marker in range(1,4):
+            event_codes = [self.event_id[key] for key in self.event_id if key in [f'{i}' for i in range(int(f'{marker}1'), int(f'{marker+1}0'))]]
+            self.events =  mne.merge_events(self.events, event_codes, int(f'{marker}1'), replace_events=True)
+        self.event_id = {'11': 11, '21': 21, '31': 31}
+
         #Note that some duplicate markers exist at the same time, so event_repeated='merge' will change their label, effectively removing them
         #Best to find out why this occured in the first place
-        self.epochs = mne.Epochs(self.raw, self.events, self.event_id, tmin, tmax, event_repeated='merge')
+        self.epochs = mne.Epochs(self.raw, self.events, self.event_id, tmin, tmax, baseline=None, event_repeated='merge', preload=True)
 
     def apply_baseline_correction(self):
         self.epochs.apply_baseline((None, 0))
 
     def apply_averaging(self):
-        self.erp = self.epochs.average()
+        self.erp = {}
+        for key in ['11', '21', '31']:
+            print(f'Loading {key} data for averaging...')
+            condition = self.epochs[key].get_data()
+            averaged_condition = np.mean(condition, axis=0)
+            self.erp[key] = averaged_condition
 
-    def apply_plot_erp(self):
-        self.erp.plot()
-
-    def apply_plot_topomap(self):
-        self.erp.plot_topomap()
-
-    def apply_plot_psd(self):
-        self.raw.plot_psd()
+    def plot_erp(self):
+        electrode_index = 2
+        for key in ['11', '21', '31']:
+            plt.plot(self.erp[key][electrode_index], alpha=0.5, label=key)
+        plt.xlabel('Time')
+        plt.ylabel('Voltage')
+        plt.title('ERP Data')
+        plt.legend()
+        plt.show()
     
     def plot_eeg(self):
         data = self.raw.get_data()
@@ -110,27 +129,25 @@ class Preprocessing:
     def load_and_process_eeg(self):
         self.load_data()
         #self.plot_eeg()
-        #self.create_mne_raw_object()
-        self.apply_filter(0.1, 50)
+        #self.apply_rereference(self.reference_channels)
         #self.plot_eeg()
-        self.apply_notch_filter(60)
+        self.apply_filter(self.bp_filter_cutoffs[0], self.bp_filter_cutoffs[1])
         #self.plot_eeg()
-        #self.apply_rereference(['M1', 'M2'])
+        self.apply_notch_filter(self.notch_filter_freq)
         #self.plot_eeg()
-        #self.apply_ica(20, ['1L', '1R'])
-        self.plot_eeg()
-        self.apply_epoching(-.2, .8)
-        self.apply_baseline_correction()
+        #self.apply_ica(self.ica_components, self.eog_channel)
+        #self.plot_eeg()
+        self.apply_epoching(self.epoching_times[0], self.epoching_times[1])
+        #self.apply_baseline_correction()
         self.apply_averaging()
-        self.apply_plot_erp()
-        self.apply_plot_topomap()
-        self.apply_plot_psd()
-
+        self.plot_erp()
 
 if __name__ == '__main__':
+
     path = 'vistim_preprocessing/data'
     subject_id = 'A_011_FU1_x'
     file_path = os.path.join(path, subject_id)
 
     preprocessing = Preprocessing(file_path)
     preprocessing.load_and_process_eeg()
+    print()
