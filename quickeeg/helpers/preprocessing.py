@@ -303,7 +303,8 @@ class Preprocessing:
 
         #Save the plot
         if save_plot:
-            plt.savefig(os.path.join('quickeeg','reports',f'{self.id}_erp.png'))
+            self.plot_filename = os.path.join('quickeeg','plots',f'{self.id}_erp.png')
+            plt.savefig(self.plot_filename)
 
         plt.show()
     
