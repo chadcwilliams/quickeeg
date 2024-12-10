@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     #Subject information
     path = os.path.join('quickeeg','data')
-    id = 'A_011_FU1_x'
+    id = 'participant_001'
 
     #Create pipeline
     pipeline = ['load_data',
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     preprocessing.plot_erp(electrode_index=electrodes, save_plot=True)
 
     #Build the report
-    reader_note = ' '.join(['This report was produced by the Quickeeg package.'])
+    reader_note = ' '.join(['This report was produced by the QuickEEG package.'])
     
     custom_text = ['## Note for the reader', 
                     reader_note]
