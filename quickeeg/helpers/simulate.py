@@ -39,7 +39,11 @@ def simulate_sine(
 
     # Add events as annotations where the event is 1 every second
     events = np.array([[i * fs, 0, 1] for i in range(int(duration))])
-    annotations = mne.Annotations(onset=events[:, 0] / fs, duration=[0] * len(events), description=[str(e) for e in events[:, 2]])
+    annotations = mne.Annotations(
+        onset=events[:, 0] / fs,
+        duration=[0] * len(events),
+        description=[str(e) for e in events[:, 2]],
+    )
     raw.set_annotations(annotations)
 
     if plot:

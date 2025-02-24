@@ -37,6 +37,4 @@ def test_preprocessing():
     assert isinstance(preprocessing.raw, mne.io.RawArray)
     assert isinstance(preprocessing.epochs, mne.Epochs)
     assert preprocessing.raw.get_data().shape == (4, 10240)
-    assert preprocessing.epochs.get_data().shape[1:] == (4, 1024+1)
-
-    
+    assert preprocessing.epochs.get_data().shape[1:] == (4, 1024 + 1)

@@ -109,7 +109,11 @@ class Preprocessing:
         self.pipeline_functions = {
             "load_data": [
                 self.load_data,
-                {"file_path": file_path, "eeg_data": eeg_data, "find_files_by_marker": find_files_by_marker},
+                {
+                    "file_path": file_path,
+                    "eeg_data": eeg_data,
+                    "find_files_by_marker": find_files_by_marker,
+                },
             ],
             "rereference": [self.apply_rereference, reference_channels],
             "filter": [self.apply_filter, bp_filter_cutoffs],
@@ -127,7 +131,12 @@ class Preprocessing:
             "averaging": [self.apply_averaging, None],
         }
 
-    def load_data(self, file_path: Optional[str] = None, eeg_data: Optional[mne.io.RawArray] = None, find_files_by_marker: Optional[str] = None):
+    def load_data(
+        self,
+        file_path: Optional[str] = None,
+        eeg_data: Optional[mne.io.RawArray] = None,
+        find_files_by_marker: Optional[str] = None,
+    ):
         """
         Load the EEG data from the provided file path
 
@@ -141,13 +150,15 @@ class Preprocessing:
             The marker to use to find the EEG data files, it will find the file that contains this marker
         """
 
-        #Assert whether file_path or eeg_data is provided
+        # Assert whether file_path or eeg_data is provided
         if file_path is None and eeg_data is None:
             raise ValueError("No file path or EEG data provided")
-        
-        #Assert whether both file_path and eeg_data are provided
+
+        # Assert whether both file_path and eeg_data are provided
         if file_path is not None and eeg_data is not None:
-            raise ValueError("Both file path and EEG data provided, please provide only one")
+            raise ValueError(
+                "Both file path and EEG data provided, please provide only one"
+            )
 
         if file_path is not None:
             files = os.listdir(file_path)
@@ -159,7 +170,7 @@ class Preprocessing:
             self.raw = eeg_data
         else:
             raise ValueError("No EEG data provided")
-        
+
         self.events, self.event_id = mne.events_from_annotations(self.raw)
         self.sfreq = self.raw.info["sfreq"]
 

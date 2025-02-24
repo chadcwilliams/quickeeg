@@ -2,7 +2,7 @@ from quickeeg.helpers.simulate import simulate_sine
 
 
 def test_simulate_sine():
-    
+
     # Create data
     fs = 1024
     duration = 10.0
