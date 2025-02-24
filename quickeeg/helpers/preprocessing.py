@@ -193,7 +193,9 @@ class Preprocessing:
                     lines = f.readlines()
                     if find_files_by_marker is not None:
                         if (
-                            np.sum([True for line in lines if find_files_by_marker in line])
+                            np.sum(
+                                [True for line in lines if find_files_by_marker in line]
+                            )
                             > 0
                         ):
                             correct_file.append(True)
