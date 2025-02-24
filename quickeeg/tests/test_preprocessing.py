@@ -1,5 +1,4 @@
 import mne
-
 from quickeeg.helpers.preprocessing import Preprocessing
 from quickeeg.helpers.simulate import simulate_sine
 

@@ -187,19 +187,20 @@ class Preprocessing:
         vmrk_files = [file for file in files if file.endswith(".vmrk")]
 
         correct_file = []
-        for vmrk_file in vmrk_files:
-            with open(os.path.join(self.file_path, vmrk_file), "r") as f:
-                lines = f.readlines()
-                if find_files_by_marker is not None:
-                    if (
-                        np.sum([True for line in lines if find_files_by_marker in line])
-                        > 0
-                    ):
-                        correct_file.append(True)
+        if self.file_path is not None:
+            for vmrk_file in vmrk_files:
+                with open(os.path.join(self.file_path, vmrk_file), "r") as f:
+                    lines = f.readlines()
+                    if find_files_by_marker is not None:
+                        if (
+                            np.sum([True for line in lines if find_files_by_marker in line])
+                            > 0
+                        ):
+                            correct_file.append(True)
+                        else:
+                            correct_file.append(False)
                     else:
-                        correct_file.append(False)
-                else:
-                    correct_file.append(True)
+                        correct_file.append(True)
 
         if np.sum(correct_file) == 0:
             raise ValueError("No stimulation EEG data found in the provided files")
