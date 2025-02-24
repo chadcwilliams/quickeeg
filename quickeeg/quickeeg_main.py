@@ -1,16 +1,15 @@
 import os
 import sys
-
-sys.dont_write_bytecode = True
 import numpy as np
-
 from helpers.preprocessing import Preprocessing
 from helpers.report import Report
+
+sys.dont_write_bytecode = True
 
 if __name__ == "__main__":
 
     ###########################################
-    ############## Example usage ##############
+    ##             Example usage             ##
     ###########################################
 
     # Subject information

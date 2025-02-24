@@ -1,14 +1,14 @@
 # Quick EEG
 
-Quick EEG is an open-source python package to make processing EEG simpler. It is a wrapper for MNE that streamlines processing pipelines. 
+Quick EEG is an open-source python package to make processing EEG simpler. It is a wrapper for MNE that streamlines processing pipelines.
 
-Official documentaton and official release of package on pip to come. 
+Official documentaton and official release of package on pip to come.
 
-# Example Code
+## Example Code
 
 Example use case, which can be found in quickeeg/quickeeg_main.py
 
-```
+```python
 import os
 import sys
 sys.dont_write_bytecode = True

@@ -3,6 +3,7 @@ import numpy as np
 import mne
 import matplotlib.pyplot as plt
 
+from typing import Optional
 
 class Preprocessing:
     """
@@ -13,7 +14,7 @@ class Preprocessing:
         self,
         pipeline: list[str],
         file_path: str,
-        find_files_by_marker: str = None,
+        find_files_by_marker: Optional[str] = None,
         reference_channels: list[str] | str = "average",
         bp_filter_cutoffs: list[float] = [0.1, 50],
         notch_filter_freq: int = 60,
@@ -35,7 +36,16 @@ class Preprocessing:
         ----------
         pipeline: list[str]
             The steps in the preprocessing pipeline
-                Options: 'load_data', 'rereference', 'filter', 'notch_filter', 'ica', 'marker_cleaning', 'epoching', 'baseline_correction', 'averaging'
+                Options: 
+                    'load_data'
+                    'rereference'
+                    'filter'
+                    'notch_filter'
+                    'ica'
+                    'marker_cleaning'
+                    'epoching'
+                    'baseline_correction'
+                    'averaging'
         file_path: str
             The path to the EEG data files
         find_files_by_marker: str
@@ -112,7 +122,7 @@ class Preprocessing:
             "averaging": [self.apply_averaging, None],
         }
 
-    def load_data(self, file_path: str, find_files_by_marker: str = None):
+    def load_data(self, file_path: str, find_files_by_marker: Optional[str] = None):
         """
         Load the EEG data from the provided file path
 
@@ -132,7 +142,7 @@ class Preprocessing:
         self.events, self.event_id = mne.events_from_annotations(self.raw)
         self.sfreq = self.raw.info["sfreq"]
 
-    def determine_data(self, files: list, find_files_by_marker: str = None):
+    def determine_data(self, files: list, find_files_by_marker: Optional[str] = None):
         """
         Determine the EEG data files from the provided list of files
 

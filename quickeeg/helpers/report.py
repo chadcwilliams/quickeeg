@@ -1,8 +1,10 @@
 import os
 import warnings
+
+from typing import Optional
 from markdown_pdf import MarkdownPdf, Section
 
-from .preprocessing import Preprocessing
+from quickeeg.helpers.preprocessing import Preprocessing
 
 
 class Report:
@@ -55,9 +57,9 @@ class Report:
         """
 
         section_text = [
-            f"## QuickEEG Report Details",
+            "## QuickEEG Report Details",
             # Add a description of all of the kwargs
-            f"\n### Inputted Parameters",
+            "\n### Inputted Parameters",
         ]
         for key, value in self.eeg.parameters.items():
             if key == "pipeline":
@@ -77,12 +79,12 @@ class Report:
         """
 
         # Add ERP plot to PDF
-        section_text = [f"## ERP Plots"]
+        section_text = ["## ERP Plots"]
         for filename in self.eeg.erp_plot_filenames:
             section_text += [f"![ERP Plot]({filename})"]
         self.add_data_pdf(section_text, center=True)
 
-    def build_custom_text(self, custom_text: list[str] = None):
+    def build_custom_text(self, custom_text: Optional[list[str]] = None):
         """
         Adds custom text to the report
 
@@ -96,7 +98,7 @@ class Report:
         if custom_text is not None:
             self.add_data_pdf(custom_text)
 
-    def build_report(self, custom_text: list[str] = None):
+    def build_report(self, custom_text: Optional[list[str]] = None):
         """
         Builds the EEG report in PDF format
 
@@ -117,7 +119,7 @@ class Report:
         # Save the report
         self.save_report()
 
-    def save_report(self, print_filename: str = None) -> None:
+    def save_report(self, print_filename: Optional[str] = None) -> None:
         """
         Saves the report as a pdf
 
@@ -141,7 +143,7 @@ class Report:
         try:
             # Save pdf with default filename
             self.pdf.save(self.print_filename)
-        except:
+        except OSError as e:
             # If file is opened, it will need to save with alternative filename
             original_filename = self.print_filename
             i = 1
@@ -150,7 +152,7 @@ class Report:
                     self.print_filename = original_filename.replace(".pdf", f"-{i}.pdf")
                     self.pdf.save(self.print_filename)
                     break
-                except:
+                except OSError as e:
                     i += 1
 
             # Raise warning
