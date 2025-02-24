@@ -151,12 +151,17 @@ class Report:
                     self.print_filename = original_filename.replace(".pdf", f"-{i}.pdf")
                     self.pdf.save(self.print_filename)
                     break
-                except OSError as e:
+                except OSError as sub_e:
+                    warnings.warn(
+                        f"File {original_filename} is currently opened. Attempting to save as {self.print_filename}"
+                        f"Error: {sub_e}",
+                        stacklevel=2,
+                    )
                     i += 1
 
             # Raise warning
             warnings.warn(
-                f"File {original_filename} is currently opened. Saving as {self.print_filename}"\
+                f"File {original_filename} is currently opened. Saving as {self.print_filename}"
                 f"Error: {e}",
                 stacklevel=2,
             )

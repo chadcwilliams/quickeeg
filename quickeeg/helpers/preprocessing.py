@@ -1,9 +1,9 @@
 import os
-import numpy as np
-import mne
-import matplotlib.pyplot as plt
-
 from typing import Optional
+
+import matplotlib.pyplot as plt
+import mne
+import numpy as np
 
 
 class Preprocessing:
@@ -175,7 +175,7 @@ class Preprocessing:
 
         if np.sum(correct_file) > 1:
             raise ValueError(
-                "Multiple stimulation EEG data found in the provided files, "\
+                "Multiple stimulation EEG data found in the provided files, "
                 "you should specify a marker unique to the desired files"
             )
 
