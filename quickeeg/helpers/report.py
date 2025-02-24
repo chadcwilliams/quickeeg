@@ -1,9 +1,8 @@
 import os
 import warnings
-
 from typing import Optional
-from markdown_pdf import MarkdownPdf, Section
 
+from markdown_pdf import MarkdownPdf, Section
 from quickeeg.helpers.preprocessing import Preprocessing
 
 
@@ -157,6 +156,7 @@ class Report:
 
             # Raise warning
             warnings.warn(
-                f"File {original_filename} is currently opened. Saving as {self.print_filename}",
+                f"File {original_filename} is currently opened. Saving as {self.print_filename}"\
+                f"Error: {e}",
                 stacklevel=2,
             )

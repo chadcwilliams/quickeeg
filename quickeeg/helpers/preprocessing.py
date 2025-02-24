@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 from typing import Optional
 
+
 class Preprocessing:
     """
     Preprocessing pipeline for EEG data
@@ -36,7 +37,7 @@ class Preprocessing:
         ----------
         pipeline: list[str]
             The steps in the preprocessing pipeline
-                Options: 
+                Options:
                     'load_data'
                     'rereference'
                     'filter'
@@ -174,7 +175,8 @@ class Preprocessing:
 
         if np.sum(correct_file) > 1:
             raise ValueError(
-                "Multiple stimulation EEG data found in the provided files, you should specify a marker unique to the desired files"
+                "Multiple stimulation EEG data found in the provided files, "\
+                "you should specify a marker unique to the desired files"
             )
 
         self.vmrk_file = vmrk_files[np.argmax(correct_file)]
