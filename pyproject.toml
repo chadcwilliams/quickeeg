@@ -18,7 +18,7 @@ dependencies = [
 
 [project.dev-dependencies]
 black = "^25.0.0"
-pytest = "^7.0.0"
+pytest = "^8.0.0"
 
 [project.urls]
 "Repository" = ""

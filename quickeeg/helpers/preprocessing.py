@@ -14,10 +14,11 @@ class Preprocessing:
     def __init__(
         self,
         pipeline: list[str],
-        file_path: str,
+        file_path: Optional[str] = None,
+        eeg_data: Optional[mne.io.RawArray] = None,
         find_files_by_marker: Optional[str] = None,
         reference_channels: list[str] | str = "average",
-        bp_filter_cutoffs: list[float] = [0.1, 50],
+        bp_filter_cutoffs: list[float] = [1, 50],
         notch_filter_freq: int = 60,
         ica_components: int = 20,
         eog_channel: list[str] = ["1L", "1R"],
@@ -49,6 +50,8 @@ class Preprocessing:
                     'averaging'
         file_path: str
             The path to the EEG data files
+        eeg_data: mne.io.RawArray
+            The EEG data to process
         find_files_by_marker: str
             The marker to use to find the EEG data files, it will find the file that contains this marker
         reference_channels: list[str]
@@ -74,7 +77,8 @@ class Preprocessing:
         # Parameters
         self.pipeline = pipeline
         self.file_path = file_path
-        self.id = os.path.split(file_path)[-1]
+        self.eeg_data = eeg_data
+        self.id = os.path.split(file_path)[-1] if file_path is not None else "simulated"
         self.find_files_by_marker = find_files_by_marker
         self.reference_channels = reference_channels
         self.bp_filter_cutoffs = bp_filter_cutoffs
@@ -105,7 +109,7 @@ class Preprocessing:
         self.pipeline_functions = {
             "load_data": [
                 self.load_data,
-                {"file_path": file_path, "find_files_by_marker": find_files_by_marker},
+                {"file_path": file_path, "eeg_data": eeg_data, "find_files_by_marker": find_files_by_marker},
             ],
             "rereference": [self.apply_rereference, reference_channels],
             "filter": [self.apply_filter, bp_filter_cutoffs],
@@ -123,7 +127,7 @@ class Preprocessing:
             "averaging": [self.apply_averaging, None],
         }
 
-    def load_data(self, file_path: str, find_files_by_marker: Optional[str] = None):
+    def load_data(self, file_path: Optional[str] = None, eeg_data: Optional[mne.io.RawArray] = None, find_files_by_marker: Optional[str] = None):
         """
         Load the EEG data from the provided file path
 
@@ -131,15 +135,31 @@ class Preprocessing:
         ----------
         file_path: str
             The path to the EEG data files
+        eeg_data: mne.io.RawArray
+            The EEG data to process
         find_files_by_marker: str
             The marker to use to find the EEG data files, it will find the file that contains this marker
         """
 
-        files = os.listdir(file_path)
-        self.determine_data(files, find_files_by_marker)
-        self.raw = mne.io.read_raw_brainvision(
-            os.path.join(file_path, self.vhdr_file), preload=True
-        )
+        #Assert whether file_path or eeg_data is provided
+        if file_path is None and eeg_data is None:
+            raise ValueError("No file path or EEG data provided")
+        
+        #Assert whether both file_path and eeg_data are provided
+        if file_path is not None and eeg_data is not None:
+            raise ValueError("Both file path and EEG data provided, please provide only one")
+
+        if file_path is not None:
+            files = os.listdir(file_path)
+            self.determine_data(files, find_files_by_marker)
+            self.raw = mne.io.read_raw_brainvision(
+                os.path.join(file_path, self.vhdr_file), preload=True
+            )
+        elif eeg_data is not None:
+            self.raw = eeg_data
+        else:
+            raise ValueError("No EEG data provided")
+        
         self.events, self.event_id = mne.events_from_annotations(self.raw)
         self.sfreq = self.raw.info["sfreq"]
 
@@ -363,9 +383,9 @@ class Preprocessing:
                     )
                 )
                 plt.savefig(self.erp_plot_filenames[-1])
+                plt.close()
             else:
                 plt.show()
-            plt.close()
 
     def plot_eeg(self):
         """
