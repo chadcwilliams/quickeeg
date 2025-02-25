@@ -9,7 +9,7 @@ permissions:
 
 jobs:  
   release-build:
-    name: Publish Package to PyPI
+    name: Build Package for PyPI
     runs-on: ubuntu-latest
 
     steps:
@@ -55,3 +55,4 @@ jobs:
           uses: pypa/gh-action-pypi-publish@release/v1
           with:
             packages-dir: dist/
+            password: ${{ secrets.PYPI_API_TOKEN }}
