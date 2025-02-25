@@ -50,8 +50,12 @@ class Preprocessing:
                     'ica'
                     'marker_cleaning'
                     'epoching'
+                    'fixed_epoching'
+                    'artifact_rejection'
                     'baseline_correction'
-                    'averaging'
+                    'erp'
+                    'fft'
+                    'psd'
         file_path: str
             The path to the EEG data files
         eeg_data: mne.io.RawArray
@@ -148,15 +152,20 @@ class Preprocessing:
             ],
             "epoching": [self.apply_epoching, epoching_times],
             "fixed_epoching": [
-                self.apply_fixed_epoching, 
-                {"epoch_duration": epoch_duration, "overlap": epoch_overlap}
+                self.apply_fixed_epoching,
+                {"epoch_duration": epoch_duration, "overlap": epoch_overlap},
             ],
             "artifact_rejection": [
                 self.apply_artifact_rejection,
-                {"reject_threshold": reject_threshold, "flat_threshold": flat_threshold}
+                {
+                    "reject_threshold": reject_threshold,
+                    "flat_threshold": flat_threshold,
+                },
             ],
             "baseline_correction": [self.apply_baseline_correction, baseline_times],
-            "averaging": [self.apply_averaging, None],
+            "erp": [self.apply_erp, None],
+            "fft": [self.apply_FFT, None],
+            "psd": [self.apply_psd, None],
         }
 
     def load_data(
@@ -377,12 +386,11 @@ class Preprocessing:
     def apply_artifact_rejection(
         self,
         reject_threshold: Optional[float] = None,
-        flat_threshold: Optional[float] = None
+        flat_threshold: Optional[float] = None,
     ):
-        
         """
         Apply artifact rejection to the EEG data
-        
+
         Parameters
         ----------
         reject_threshold: float
@@ -391,11 +399,13 @@ class Preprocessing:
             The threshold for rejecting flat epochs
         """
 
-        if not hasattr(self, 'epochs'):
-            raise ValueError("Epochs have not been created yet. Please run the epoching step first")
+        if not hasattr(self, "epochs"):
+            raise ValueError(
+                "Epochs have not been created yet. Please run the epoching step first"
+            )
 
-        reject = {'eeg': reject_threshold} if reject_threshold is not None else None
-        flat = {'eeg': flat_threshold} if flat_threshold is not None else None
+        reject = {"eeg": reject_threshold} if reject_threshold is not None else None
+        flat = {"eeg": flat_threshold} if flat_threshold is not None else None
         self.epochs.drop_bad(reject=reject, flat=flat)
 
     def apply_baseline_correction(self, times: list[float]):
@@ -410,7 +420,7 @@ class Preprocessing:
 
         self.epochs.apply_baseline((times[0], times[1]))
 
-    def apply_averaging(self):
+    def apply_erp(self):
         """
         Apply averaging to the EEG data
 
@@ -428,6 +438,63 @@ class Preprocessing:
             print(f"Loading condition {key} data for averaging...")
             self.erp[key] = np.mean(self.epochs[key].get_data(), axis=0)
 
+    def apply_FFT(self):
+        """
+        Apply FFT to the EEG data
+
+        Parameters
+        ----------
+        None
+        """
+
+        if not hasattr(self, "epochs"):
+            raise ValueError(
+                "Epochs have not been created yet. Please run the epoching step first"
+            )
+
+        fft = np.fft.fft(self.epochs.get_data())
+        freqs = np.fft.fftfreq(fft.shape[-1], 1 / self.sfreq)
+        fft = np.abs(fft)
+        fft = fft[:, :, freqs > 0]
+        freqs = freqs[freqs > 0]
+        self.freqs = freqs
+
+        event_codes = self.epochs.event_id
+        self.fft = {}
+        for key in self.target_markers:
+            event_code = event_codes[key]
+            event_index = np.where(self.epochs.events[:, 2] == event_code)[0]
+            marker_fft = fft[event_index]
+            self.fft[key] = np.mean(marker_fft, axis=0)
+
+    def apply_psd(self):
+        """
+        Apply PSD to the EEG data
+
+        Parameters
+        ----------
+        None
+        """
+
+        if not hasattr(self, "epochs"):
+            raise ValueError(
+                "Epochs have not been created yet. Please run the epoching step first"
+            )
+
+        psd, freqs = mne.time_frequency.psd_array_welch(
+            self.epochs.get_data(), sfreq=self.sfreq, fmin=1, fmax=100, n_jobs=1
+        )
+        psd = 10 * np.log10(psd)  # Convert PSD data to to dB
+
+        event_codes = self.epochs.event_id
+        self.psd = {}
+        self.psd_freqs = freqs
+        for key in self.target_markers:
+            event_code = event_codes[key]
+            event_index = np.where(self.epochs.events[:, 2] == event_code)[0]
+            marker_psd = psd[event_index]
+            self.psd[key] = np.mean(marker_psd, axis=0)
+
     def plot_erp(self, electrode_index: list[int], save_plot: bool = False):
         """
         Plot the ERP data
@@ -441,7 +508,7 @@ class Preprocessing:
         self.erp_plot_filenames = []
         for e in electrode_index:
             for key in self.target_markers:
-                plt.plot(self.erp[key][e], alpha=0.5, label=key)
+                plt.plot(self.erp[key][e], alpha=0.5, label=f"{key}_e{e}")
             plt.xlabel("Time (ms)")
             start, end = [time * 1000 for time in self.epoching_times]
             xl = np.arange(start, end + 1, 200)
@@ -461,6 +528,97 @@ class Preprocessing:
                     )
                 )
                 plt.savefig(self.erp_plot_filenames[-1])
+                plt.close()
+            else:
+                plt.show()
+
+    def plot_fft(
+        self, electrode_index: list[int], max_freq: int = 100, save_plot: bool = False
+    ):
+        """
+        Plot the FFT data
+
+        Parameters
+        ----------
+        save_plot: bool
+            Whether to save the plot
+
+        Returns
+        -------
+        None
+        """
+        for e in electrode_index:
+            self.fft_plot_filenames = []
+            frequencies = self.freqs
+            freq_index = np.where(frequencies < max_freq)[0]
+            for key in self.target_markers:
+                plt.plot(
+                    frequencies[freq_index],
+                    self.fft[key][e, freq_index].T,
+                    alpha=0.5,
+                    label=f"{key}_e{e}",
+                )
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Power")
+            plt.title("FFT Data")
+            plt.legend()
+
+            # Save the plot
+            if save_plot:
+                self.fft_plot_filenames.append(
+                    os.path.join(
+                        "quickeeg",
+                        "plots",
+                        f"{self.id}_e{self.raw.ch_names[e]}_fft.png",
+                    )
+                )
+                plt.savefig(self.fft_plot_filenames[-1])
+                plt.close()
+            else:
+                plt.show()
+
+    def plot_psd(
+        self, electrode_index: list[int], max_freq: int = 100, save_plot: bool = False
+    ):
+        """
+        Plot the PSD data
+
+        Parameters
+        ----------
+        save_plot: bool
+            Whether to save the plot
+
+        Returns
+        -------
+        None
+        """
+
+        for e in electrode_index:
+            self.psd_plot_filenames = []
+            frequencies = self.psd_freqs
+            freq_index = np.where(frequencies < max_freq)[0]
+            for key in self.target_markers:
+                plt.plot(
+                    frequencies[freq_index],
+                    self.psd[key][e, freq_index].T,
+                    alpha=0.5,
+                    label=f"{key}_e{e}",
+                )
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Power")
+            plt.title("PSD Data")
+            plt.legend()
+
+            # Save the plot
+            if save_plot:
+                self.psd_plot_filenames.append(
+                    os.path.join(
+                        "quickeeg",
+                        "plots",
+                        f"{self.id}_e{self.raw.ch_names[e]}_psd.png",
+                    )
+                )
+                plt.savefig(self.psd_plot_filenames[-1])
                 plt.close()
             else:
                 plt.show()
@@ -496,6 +654,8 @@ class Preprocessing:
         for step in self.pipeline:
             function = self.pipeline_functions[step][0]
             params = self.pipeline_functions[step][1]
+            print("---------------------------------")
+            print(f'\nRUNNING {step.upper().replace("_"," ")}\n')
             if params is None:
                 function()
             elif type(params) == dict:
