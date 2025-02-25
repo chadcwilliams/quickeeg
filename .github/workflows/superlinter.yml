@@ -1,7 +1,7 @@
 ---
 name: Super-Linter
 
-on: push
+on: [push, pull_request]
 
 jobs:
   super-lint:
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Super-Linter
         uses: github/super-linter@v4
