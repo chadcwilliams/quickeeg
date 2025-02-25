@@ -1,6 +1,6 @@
 [project]
 name = "quickeeg"
-version = "0.1.0"
+version = "0.0.0"
 authors = [
   { name="Chad Williams", email="chadwilliams.ccw@gmail.com" },
 ]
@@ -21,7 +21,8 @@ black = "^25.0.0"
 pytest = "^8.0.0"
 
 [project.urls]
-"Repository" = ""
+"Homepage" = "https://github.com/chadcwilliams/quickeeg"
+"Repository" = "https://github.com/chadcwilliams/quickeeg"
 
 [build-system]
 requires = ["hatchling"]
