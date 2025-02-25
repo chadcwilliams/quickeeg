@@ -29,6 +29,10 @@ class Preprocessing:
             "31": [f"{i}" for i in range(31, 40)],
         },
         epoching_times: list[float] = [-0.2, 0.8],
+        epoch_duration: float = 1.0,
+        epoch_overlap: float = 0.5,
+        reject_threshold: float = None,
+        flat_threshold: float = None,
         baseline_times: list[float] = [-0.2, 0],
     ):
         """
@@ -70,6 +74,14 @@ class Preprocessing:
             The markers to keep in the EEG data. The key will become the id, and the values will be the markers to merge
         epoching_times: list[float]
             The start and end times for the epochs
+        epoch_duration: float
+            The duration of the fixed length epochs
+        epoch_overlap: float
+            The overlap of the fixed length epochs
+        reject_threshold: float
+            The threshold for rejecting epochs
+        flat_threshold: float
+            The threshold for rejecting flat epochs
         baseline_times: list[float]
             The start and end times for the baseline correction
         """
@@ -88,6 +100,10 @@ class Preprocessing:
         self.clean_markers = clean_markers
         self.target_markers = target_markers
         self.epoching_times = epoching_times
+        self.epoch_duration = epoch_duration
+        self.epoch_overlap = epoch_overlap
+        self.reject_threshold = reject_threshold
+        self.flat_threshold = flat_threshold
         self.baseline_times = baseline_times
 
         self.parameters = {
@@ -102,6 +118,10 @@ class Preprocessing:
             "clean_markers": clean_markers,
             "target_markers": target_markers,
             "epoching_times": epoching_times,
+            "epoch_duration": epoch_duration,
+            "epoch_overlap": epoch_overlap,
+            "reject_threshold": reject_threshold,
+            "flat_threshold": flat_threshold,
             "baseline_times": baseline_times,
         }
 
@@ -127,6 +147,14 @@ class Preprocessing:
                 {"clean_markers": clean_markers, "target_markers": target_markers},
             ],
             "epoching": [self.apply_epoching, epoching_times],
+            "fixed_epoching": [
+                self.apply_fixed_epoching, 
+                {"epoch_duration": epoch_duration, "overlap": epoch_overlap}
+            ],
+            "artifact_rejection": [
+                self.apply_artifact_rejection,
+                {"reject_threshold": reject_threshold, "flat_threshold": flat_threshold}
+            ],
             "baseline_correction": [self.apply_baseline_correction, baseline_times],
             "averaging": [self.apply_averaging, None],
         }
@@ -333,6 +361,42 @@ class Preprocessing:
             event_repeated="merge",
             preload=True,
         )
+
+    def apply_fixed_epoching(
+        self,
+        epoch_duration: float = 1.0,
+        overlap: float = 0.5,
+    ):
+        self.epochs = mne.make_fixed_length_epochs(
+            self.raw,
+            duration=epoch_duration,
+            overlap=overlap,
+            preload=True,
+        )
+
+    def apply_artifact_rejection(
+        self,
+        reject_threshold: Optional[float] = None,
+        flat_threshold: Optional[float] = None
+    ):
+        
+        """
+        Apply artifact rejection to the EEG data
+        
+        Parameters
+        ----------
+        reject_threshold: float
+            The threshold for rejecting epochs
+        flat_threshold: float
+            The threshold for rejecting flat epochs
+        """
+
+        if not hasattr(self, 'epochs'):
+            raise ValueError("Epochs have not been created yet. Please run the epoching step first")
+
+        reject = {'eeg': reject_threshold} if reject_threshold is not None else None
+        flat = {'eeg': flat_threshold} if flat_threshold is not None else None
+        self.epochs.drop_bad(reject=reject, flat=flat)
 
     def apply_baseline_correction(self, times: list[float]):
         """
