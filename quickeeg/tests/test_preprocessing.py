@@ -15,7 +15,7 @@ def test_preprocessing():
         "notch_filter",
         "epoching",
         "baseline_correction",
-        "averaging",
+        "erp",
     ]
 
     params = {
