@@ -433,9 +433,10 @@ class Preprocessing:
             raise ValueError("No target markers provided for averaging")
 
         # TODO: Extracting epoch dataframes is really slow, find a way to speed this up
+        self.trial_erp = {}
         self.erp = {}
         for key in self.target_markers:
-            print(f"Loading condition {key} data for averaging...")
+            self.trial_erp[key] = self.epochs[key].get_data()
             self.erp[key] = np.mean(self.epochs[key].get_data(), axis=0)
 
     def apply_FFT(self):
@@ -460,11 +461,13 @@ class Preprocessing:
         self.freqs = freqs
 
         event_codes = self.epochs.event_id
+        self.trial_fft = {}
         self.fft = {}
         for key in self.target_markers:
             event_code = event_codes[key]
             event_index = np.where(self.epochs.events[:, 2] == event_code)[0]
             marker_fft = fft[event_index]
+            self.trial_fft[key] = marker_fft
             self.fft[key] = np.mean(marker_fft, axis=0)
 
     def apply_psd(self):
@@ -487,12 +490,14 @@ class Preprocessing:
         psd = 10 * np.log10(psd)  # Convert PSD data to to dB
 
         event_codes = self.epochs.event_id
+        self.trial_psd = {}
         self.psd = {}
         self.psd_freqs = freqs
         for key in self.target_markers:
             event_code = event_codes[key]
             event_index = np.where(self.epochs.events[:, 2] == event_code)[0]
             marker_psd = psd[event_index]
+            self.trial_psd[key] = marker_psd
             self.psd[key] = np.mean(marker_psd, axis=0)
 
     def plot_erp(self, electrode_index: list[int], save_plot: bool = False):
@@ -550,7 +555,7 @@ class Preprocessing:
         for e in electrode_index:
             self.fft_plot_filenames = []
             frequencies = self.freqs
-            freq_index = np.where(frequencies < max_freq)[0]
+            freq_index = np.where(frequencies <= max_freq)[0]
             for key in self.target_markers:
                 plt.plot(
                     frequencies[freq_index],
@@ -596,7 +601,7 @@ class Preprocessing:
         for e in electrode_index:
             self.psd_plot_filenames = []
             frequencies = self.psd_freqs
-            freq_index = np.where(frequencies < max_freq)[0]
+            freq_index = np.where(frequencies <= max_freq)[0]
             for key in self.target_markers:
                 plt.plot(
                     frequencies[freq_index],
