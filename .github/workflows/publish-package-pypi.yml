@@ -1,3 +1,4 @@
+---
 name: Upload Python Package
 
 on:
@@ -30,8 +31,10 @@ jobs:
       - name: Update version in pyproject.toml
         run: |
           # Replace version in pyproject.toml with the release tag
-          sed -i "s/^version = \".*\"/version = \"${{ env.VERSION }}\"/" pyproject.toml
-
+          sed -i \
+              "s/^version = \".*\"/version = \"${{ env.VERSION }}\"/" \
+              pyproject.toml
+              
       - name: Build release distributions
         run: |
           # NOTE: put your own distribution build steps here.
@@ -45,25 +48,25 @@ jobs:
           path: dist/
 
   pypi-publish:
-      name: Publish Package to PyPI
-      runs-on: ubuntu-latest
-      needs:
-        - release-build
-      permissions:
-        id-token: write
+    name: Publish Package to PyPI
+    runs-on: ubuntu-latest
+    needs:
+      - release-build
+    permissions:
+      id-token: write
 
-      environment:
-        name: pypi
+    environment:
+      name: pypi
 
-      steps:
-        - name: Retrieve release distributions
-          uses: actions/download-artifact@v4
-          with:
-            name: release-dists
-            path: dist/
+    steps:
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
 
-        - name: Publish release distributions to PyPI
-          uses: pypa/gh-action-pypi-publish@release/v1
-          with:
-            packages-dir: dist/
-            password: ${{ secrets.PYPI_API_TOKEN }}
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          password: ${{ secrets.PYPI_API_TOKEN }}

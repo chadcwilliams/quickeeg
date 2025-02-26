@@ -31,8 +31,8 @@ class Preprocessing:
         epoching_times: list[float] = [-0.2, 0.8],
         epoch_duration: float = 1.0,
         epoch_overlap: float = 0.5,
-        reject_threshold: float = None,
-        flat_threshold: float = None,
+        reject_threshold: Optional[float] = None,
+        flat_threshold: Optional[float] = None,
         baseline_times: list[float] = [-0.2, 0],
     ):
         """
